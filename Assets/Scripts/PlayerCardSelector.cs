@@ -19,6 +19,7 @@ public class PlayerCardSelector : MonoBehaviour
     private string playerName;
     private bool isMaster;
     private bool isPlayerTurn;
+    private int lastActiveImgIndex;
 
     public void RefreshCards()
     {
@@ -30,18 +31,24 @@ public class PlayerCardSelector : MonoBehaviour
         else
         {
             cards = new List<Card>(cardImages.Count);
-            for (int i = 0; i < cm.myCards.Count; i++)
+            for (int i = 0; i < cm.MyCards.Count; i++)
             {
-                selectedCardIndex = (selectedCardIndex + 1) % cm.myCards.Count;
+                selectedCardIndex = (selectedCardIndex + 1) % cm.MyCards.Count;
                 if (i < 4)
                 {
-                    Card c = cm.myCards[selectedCardIndex];
+                    Card c = cm.MyCards[selectedCardIndex];
                     cards.Insert(i, c);
-                    Debug.Log(selectedCardIndex);
+                    cardImages[i].gameObject.SetActive(true);
                     cardImages[i].sprite = cm.GetCardSprite(c);
                 }
             }
-            cardInfoText.text = "Te quedan <b><color=\"green\">" + cm.myCards.Count + "</color></b> cartas";
+
+            for (int i = 0; i < Mathf.Max(0, 4 - cm.MyCards.Count); i++)
+            {
+                cardImages[cardImages.Count - (i+1)].gameObject.SetActive(false);
+                lastActiveImgIndex = cardImages.Count - (i+2);
+            }
+            cardInfoText.text = "Te quedan <b><color=\"green\">" + cm.MyCards.Count + "</color></b> cartas";
         }
     }
 
@@ -52,8 +59,10 @@ public class PlayerCardSelector : MonoBehaviour
         isMaster = master;
         cm = CardManager.Instance;
         playerNameText.text = isMaster ? playerName + " (<color=\"blue\">Master</color>)" : playerName;
+        //Debug.Log("Cm is: " + (cm == null));
+        //Debug.Log("Cm.Mycards is: " + (cm.MyCards == null));
         if (PhotonNetwork.LocalPlayer.ActorNumber == ownerId)
-            cardInfoText.text = "Te quedan <b><color=\"green\">" + cm.myCards.Count + "</color></b> cartas";
+            cardInfoText.text = "Te quedan <b><color=\"green\">" + cm.MyCards.Count + "</color></b> cartas";
 
         RefreshCards();
     }
@@ -65,7 +74,7 @@ public class PlayerCardSelector : MonoBehaviour
 
     public void PlayCard(Image img)
     {
-        Card c = cards[cardImages.IndexOf(img)];
+        Card c = cards[cardImages.IndexOf(img) % cards.Count];
         if (c.num == 8)
         {
             // show popup for palo forzado
@@ -74,17 +83,40 @@ public class PlayerCardSelector : MonoBehaviour
         OnCardPlayOptionsSelected(c);
     }
 
+    public void ScrollToCard(Card c)
+    {
+        if (!cards.Contains(c))
+        {
+            Debug.Log("ayuda");
+            return;
+        }
+        ScrollTo(cards.IndexOf(c));
+    }
+
+    public void ScrollTo(int index)
+    {
+        // hacer que scrollee hasta encontrar el index deseado
+        Debug.Log(index); // TODO: hacer que esto del scroll funcione
+        bool back = selectedCardIndex - index > 0;
+        var s = cm.GetCardSprite(cards[index]);
+        while (cardImages[lastActiveImgIndex].sprite != s) // da error cuando es -1, cuando ya no quedan cartas
+        {
+            MoveCards(back);
+        }
+    }
+
     public void OnCardPlayOptionsSelected(Card c, TMP_InputField input = null)
     {
         int pForzado = (input == null) ? -1 : int.Parse(input.text);
-        cm.TryPlayCard(c, PhotonNetwork.LocalPlayer, pForzado);
+        if (cm.CanPlayCard(c) || true) // TODO: eliminar el debug
+        {
+            cm.PlayCard(c, PhotonNetwork.LocalPlayer, pForzado, true);
+        }
     }
 
     public void MoveCards(bool back)
     {
-        Debug.Log(selectedCardIndex);
         selectedCardIndex += back ? -1 : 1;
-        Debug.Log(selectedCardIndex);
         RefreshCards();
     }
 }

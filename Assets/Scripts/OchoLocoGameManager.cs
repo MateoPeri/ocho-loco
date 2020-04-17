@@ -63,6 +63,7 @@ public class OchoLocoGameManager : PunTurnManager // MonoBehaviourPunCallbacks, 
             timer -= Time.deltaTime;
         }
 
+        Debug.Log("eh??");
         PhotonNetwork.LeaveRoom();
     }
 

@@ -322,8 +322,7 @@ public class NetworkController : MonoBehaviourPunCallbacks
             var item = obj.GetComponent<PlayerListItem>();
             item.Initialize(p.ActorNumber, p.NickName, p.IsMasterClient);
 
-            object isPlayerReady;
-            if (p.CustomProperties.TryGetValue(OchoLoco.PLAYER_READY, out isPlayerReady))
+            if (p.CustomProperties.TryGetValue(OchoLoco.PLAYER_READY, out object isPlayerReady))
             {
                 item.SetPlayerReady((bool)isPlayerReady);
             }
@@ -366,7 +365,7 @@ public class NetworkController : MonoBehaviourPunCallbacks
         if (!PhotonNetwork.IsMasterClient)
             return false;
 
-        if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
+        if (PhotonNetwork.CurrentRoom.PlayerCount < 2 && false) // TODO: remove when deploying!!!
             return false;
 
         foreach (Player p in PhotonNetwork.PlayerList)
