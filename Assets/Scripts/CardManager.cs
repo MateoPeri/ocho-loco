@@ -56,6 +56,8 @@ public class CardManager : MonoBehaviourPunCallbacks
     public int nBarajas = 1;
     public bool isPlayerTurn;
 
+    public bool debug;
+
     private void Awake()
     {
         Instance = this;
@@ -215,6 +217,17 @@ public class CardManager : MonoBehaviourPunCallbacks
         if (propertiesThatChanged.ContainsKey(OchoLoco.REMAINING_CARDS) || propertiesThatChanged.ContainsKey(OchoLoco.PLAYING_CARDS))
         {
             Debug.Log("downloading room cards due to room update");
+            if (debug)
+                foreach (DictionaryEntry kvp in propertiesThatChanged)
+                    Debug.Log(string.Format("Key = {0}, Value = {1}", kvp.Key, kvp.Value));
+            if (propertiesThatChanged.TryGetValue(OchoLoco.PLAYING_CARDS, out object pc))
+            {
+                Debug.Log("this is a test!");
+                var arr = (Card[])pc;
+                var test = playingCardStack.Peek();
+                playingCardStack = new Stack<Card>(arr);
+                Debug.Log(playingCardStack.Peek() + " | " + test);
+            }
             DownloadRoomCards();
         }
     }
@@ -475,7 +488,7 @@ public struct Card
 
     public override string ToString()
     {
-        return string.Format("Card(Palo={0}, Num={1}", palo, num);
+        return string.Format("Card(Palo={0}, Num={1})", palo, num);
     }
 
     public override int GetHashCode()

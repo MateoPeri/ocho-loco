@@ -1300,8 +1300,6 @@ MonoBehaviour:
   - {fileID: 3559610566736648697, guid: 684489a74aa3ad444b99642f995b6263, type: 3}
   - {fileID: -837436464875232882, guid: 1eaeaa8298ce9314bbc2e24ada920d46, type: 3}
   allCards: []
-  cardParents:
-  - {fileID: 0}
   playerCardSelectorPrefab: {fileID: 5631478773532166010, guid: 1a8a0d385f9729b4a99016be63cd065f,
     type: 3}
   otherPlayerSelectorPrefab: {fileID: 5631478773532166010, guid: 291fe6d2b76b6a34fa89cc93e1ecaa80,
@@ -1311,9 +1309,9 @@ MonoBehaviour:
   playingStack: {fileID: 498016316}
   stealingStackText: {fileID: 1631523043}
   paloForzado: -1
-  myCards: []
   nBarajas: 1
   isPlayerTurn: 0
+  debug: 1
 --- !u!4 &1969344987
 Transform:
   m_ObjectHideFlags: 0
