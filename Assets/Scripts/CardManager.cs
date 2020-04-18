@@ -10,6 +10,7 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using ExitGames.Client.Photon;
+using System.Threading;
 
 public class CardManager : MonoBehaviourPunCallbacks
 {
@@ -90,7 +91,7 @@ public class CardManager : MonoBehaviourPunCallbacks
             remainingCards = new Queue<Card>(allCards);
             playingCardStack = new Stack<Card>();
             playerCardList = RepartirCartas(nBarajas);
-            playingCardStack.Push(remainingCards.Dequeue()); // TODO: seguro que es dequeue??
+            playingCardStack.Push(remainingCards.Dequeue()); // TODO seguro que es dequeue??
 
             //UpdateRoomProps();
             UploadRoomCards();
@@ -162,7 +163,7 @@ public class CardManager : MonoBehaviourPunCallbacks
                 pcl[j].Add(remainingCards.Dequeue());
             }
         }
-        // TODO: esto sería lo ideal. que hubiese una lista de cartas central y que los players la cachearan al principio de cada turno.
+        // TODO esto sería lo ideal. que hubiese una lista de cartas central y que los players la cachearan al principio de cada turno.
         /*
         Hashtable roomProps = new Hashtable
         {
@@ -212,8 +213,17 @@ public class CardManager : MonoBehaviourPunCallbacks
         }
     }
 
+    /*
+    private int c = 0; // TODO esto es mala idea
     public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
     {
+        if (c <= 1 && false)
+        {
+            c++;
+            UploadRoomCards();
+            return;
+        }
+        c = 0;
         if (propertiesThatChanged.ContainsKey(OchoLoco.REMAINING_CARDS) || propertiesThatChanged.ContainsKey(OchoLoco.PLAYING_CARDS))
         {
             Debug.Log("downloading room cards due to room update");
@@ -231,7 +241,38 @@ public class CardManager : MonoBehaviourPunCallbacks
             DownloadRoomCards();
         }
     }
+    */
 
+    public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
+    {
+        Debug.Log("downloading room cards due to room update");
+        if (propertiesThatChanged.TryGetValue(OchoLoco.REMAINING_CARDS, out object _remainingCards))
+        {
+            var arr = (Card[])_remainingCards;
+            remainingCards = new Queue<Card>(arr);
+            Debug.Log("downloading remaining cards. null: " + (remainingCards == null));
+        }
+        else
+            Debug.Log("remaining cards download failed");
+
+        if (propertiesThatChanged.TryGetValue(OchoLoco.PLAYING_CARDS, out object _playingCards))
+        {
+            var newStack = new Stack<Card>((Card[])_playingCards);
+            Debug.Log("downloading playing cards. null: " + (newStack == null));
+            Debug.Log(playingCardStack.Peek() + " | " + newStack.Peek());
+            if (playingCardStack.Peek() != newStack.Peek())
+            {
+                Debug.Log("trying again...");
+                UploadRoomCards();
+                return;
+            }
+            playingCardStack = newStack;
+        }
+        else
+            Debug.Log("playing cards download failed");
+
+        RefreshStacks();
+    }
 
     public void RefreshStacks() // llamado después de cada jugada
     {
@@ -306,7 +347,7 @@ public class CardManager : MonoBehaviourPunCallbacks
             { OchoLoco.PLAYING_CARDS,   playingCardStack.ToArray()  }
         };
         //roomUpdated = false;
-        Debug.Log("uploading room cards...");
+        Debug.Log("uploading room cards... I am " + PhotonNetwork.LocalPlayer.NickName);
         PhotonNetwork.CurrentRoom.SetCustomProperties(roomProps);
     }
 
@@ -386,18 +427,18 @@ public class CardManager : MonoBehaviourPunCallbacks
     {
         RefreshStacks(); // asegurarse de que el remaining stack se rellena
 
-        if ((!CanPlayAnyCard(true) && remainingCards.Count > 0) || true) // TODO: quitar el debug // solo robas si no puedes jugar ninguna
+        if ((!CanPlayAnyCard(true) && remainingCards.Count > 0) || true) // TODO quitar el debug // solo robas si no puedes jugar ninguna
         {
             Robar(PhotonNetwork.LocalPlayer);
         }
     }
 
-    public void Robar(Player p) // TODO: player???? mycards están vinculadas al player ya no??
+    public void Robar(Player p) // TODO player???? mycards están vinculadas al player ya no??
     {
         MyCards.Add(remainingCards.Dequeue());
         UploadMyCards();
         // we call refresh once the cards reach the server and are downloaded back RefreshPlayerCardSelectors();
-        //playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].ScrollTo(myCards.Count - 1); // TODO: ese index no lo veo yo muy claro
+        //playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].ScrollTo(myCards.Count - 1); // TODO ese index no lo veo yo muy claro
         playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].ScrollToCard(MyCards[MyCards.Count - 1]);
         UploadRoomCards();
         // we call refresh once the cards reach the server and are downloaded back RefreshStacks();
