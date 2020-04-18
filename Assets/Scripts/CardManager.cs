@@ -12,9 +12,11 @@ using System.Text.RegularExpressions;
 using ExitGames.Client.Photon;
 using System.Threading;
 
-public class CardManager : MonoBehaviourPunCallbacks
+public class CardManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public static CardManager Instance;
+
+    // private PhotonView photonView;
 
     public List<Sprite> cardSprites = new List<Sprite>();
     public List<Card> allCards;
@@ -62,6 +64,7 @@ public class CardManager : MonoBehaviourPunCallbacks
     private void Awake()
     {
         Instance = this;
+        // photonView = GetComponent<PhotonView>();
         PhotonPeer.RegisterType(typeof(Card), (byte)'C', Card.SerializeCard, Card.DeserializeCard);
     }
 
@@ -118,16 +121,45 @@ public class CardManager : MonoBehaviourPunCallbacks
 
     private void Update() // esto habría que cambiarlo por algo que solo se ejecutase cada turno
     {
-        return;
-        if (roomUpdated && playerUpdated)
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            roomUpdated = false;
-            playerUpdated = false;
-            DownloadMyCards();
+            Debug.Log("Sending 2");
+            photonView.RPC("RPCTest", RpcTarget.All, new Hashtable { { 1, 2 } });
         }
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            Debug.Log("Sending 1");
+            photonView.RPC("RPCTest", RpcTarget.All, new Hashtable { { 1, 1 } });
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Debug.Log("Sending 1 and 2");
+            photonView.RPC("RPCTest", RpcTarget.All, new Hashtable { { 1, 1 }, { 2, 2 } });
+        }
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            var c = new Card(0, 5);
+            Debug.Log("sending " + c);
+            photonView.RPC("RPCTest", RpcTarget.All, new Hashtable { { 1, c } });
+        }
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            var c1 = new Card(0, 5);
+            var c2 = new Card(1, 10);
+            Debug.Log("sending " + c1 + " and " + c2);
+            photonView.RPC("RPCTest", RpcTarget.All, new Hashtable { { 1, c1 }, { 2, c2 } });
+        }
+    }
 
-        return;
-        UploadMyCards();
+    // DEBUG
+    [PunRPC]
+    public void RPCTest(Hashtable testHash)
+    {
+        Debug.Log("Got " + testHash[1]);
+        if (testHash.TryGetValue(2, out object c))
+        {
+            Debug.Log(" and " + c);
+        }
     }
 
     public void LeaveRoom() // mover a otro lado porque aquí no pinta nada
@@ -245,6 +277,7 @@ public class CardManager : MonoBehaviourPunCallbacks
 
     public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
     {
+        return;
         Debug.Log("downloading room cards due to room update");
         if (propertiesThatChanged.TryGetValue(OchoLoco.REMAINING_CARDS, out object _remainingCards))
         {
@@ -266,6 +299,42 @@ public class CardManager : MonoBehaviourPunCallbacks
                 UploadRoomCards();
                 return;
             }
+            playingCardStack = newStack;
+        }
+        else
+            Debug.Log("playing cards download failed");
+
+        RefreshStacks();
+    }
+
+    [PunRPC]
+    public void SyncRoomCards(Hashtable newCards)
+    {
+        Debug.Log("syncing room cards");
+        Debug.Log("Got this: " + new Stack<Card>(((Card[])newCards[OchoLoco.PLAYING_CARDS])).Peek());
+        if (newCards.TryGetValue(OchoLoco.REMAINING_CARDS, out object _remainingCards))
+        {
+            var arr = (Card[])_remainingCards;
+            remainingCards = new Queue<Card>(arr);
+            Debug.Log("downloading remaining cards. null: " + (remainingCards == null));
+        }
+        else
+            Debug.Log("remaining cards download failed");
+
+        if (newCards.TryGetValue(OchoLoco.PLAYING_CARDS, out object _playingCards))
+        {
+            var newStack = new Stack<Card>((Card[])_playingCards);
+            Debug.Log("downloading playing cards. null: " + (newStack == null));
+            if (playingCardStack != null)
+                Debug.Log(playingCardStack.Peek() + " | " + newStack.Peek());
+            /*
+            if (playingCardStack.Peek() != newStack.Peek())
+            {
+                Debug.Log("trying again...");
+                UploadRoomCards();
+                return;
+            }
+            */
             playingCardStack = newStack;
         }
         else
@@ -328,27 +397,29 @@ public class CardManager : MonoBehaviourPunCallbacks
         RefreshPlayerCardSelectors(); // BUG esto se está llamando antes que los downloads!!!
     }
 
-    public void UploadMyCards() // Cada jugador sube sus cartas al final de cada turno. El Master Client las recoge y las guarda en las properties de la room.
+    // Cada jugador sube sus cartas al final de cada turno. El Master Client las recoge y las guarda en las properties de la room.
+    public void UploadMyCards()
     {
-        //playerCardList[PhotonNetwork.PlayerList.ToList().IndexOf(PhotonNetwork.LocalPlayer)] = myCards;
         Hashtable props = new Hashtable
         {
-            {OchoLoco.PLAYER_CARDS, MyCards.ToArray()} // PUN no soporta listas!
+            {OchoLoco.PLAYER_CARDS, MyCards.ToArray()}
         };
         Debug.Log("uploading my cards");
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
     }
 
-    public void UploadRoomCards() // Cada jugador sube las cartas de los montones después de hacer una jugada.
+    // Cada jugador sube las cartas de los montones después de hacer una jugada.
+    public void UploadRoomCards()
     {
         Hashtable roomProps = new Hashtable
         {
             { OchoLoco.REMAINING_CARDS, remainingCards.ToArray()    },
             { OchoLoco.PLAYING_CARDS,   playingCardStack.ToArray()  }
         };
-        //roomUpdated = false;
         Debug.Log("uploading room cards... I am " + PhotonNetwork.LocalPlayer.NickName);
-        PhotonNetwork.CurrentRoom.SetCustomProperties(roomProps);
+        Debug.Log("Sending this: " + playingCardStack.Peek());
+        // PhotonNetwork.CurrentRoom.SetCustomProperties(roomProps); // Local properties does not work
+        photonView.RPC("SyncRoomCards", RpcTarget.All, roomProps);
     }
 
     private void RefreshPlayerCardSelectors()
@@ -486,6 +557,11 @@ public class CardManager : MonoBehaviourPunCallbacks
     public Sprite GetCardSprite(string sName)
     {
         return cardSprites.Where(x => x.name == sName).FirstOrDefault();
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        throw new System.NotImplementedException();
     }
 }
 

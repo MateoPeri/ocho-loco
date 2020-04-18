@@ -35,45 +35,51 @@ MonoBehaviour:
     Note: 
     Tag: TODO
     File: D:\Users\mateo\OneDrive - meligrana.com\Documentos\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
-    Line: 93
-    PathToShow: Assets/Scripts/CardManager.cs(93)
+    Line: 97
+    PathToShow: Assets/Scripts/CardManager.cs(97)
   - Text: " esto ser\xEDa lo ideal. que hubiese una lista de cartas central y que
       los players la cachearan al principio de cada turno.\r"
     Note: 
     Tag: TODO
     File: D:\Users\mateo\OneDrive - meligrana.com\Documentos\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
-    Line: 165
-    PathToShow: Assets/Scripts/CardManager.cs(165)
+    Line: 169
+    PathToShow: Assets/Scripts/CardManager.cs(169)
+  - Text: " esto es mala idea\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\OneDrive - meligrana.com\Documentos\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
+    Line: 220
+    PathToShow: Assets/Scripts/CardManager.cs(220)
   - Text: " debug // si tu carta vale o si tienes un ocho pasas\r"
     Note: 
     Tag: TODO
     File: D:\Users\mateo\OneDrive - meligrana.com\Documentos\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
-    Line: 372
-    PathToShow: Assets/Scripts/CardManager.cs(372)
+    Line: 453
+    PathToShow: Assets/Scripts/CardManager.cs(453)
   - Text: " quitar el debug // solo robas si no puedes jugar ninguna\r"
     Note: 
     Tag: TODO
     File: D:\Users\mateo\OneDrive - meligrana.com\Documentos\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
-    Line: 389
-    PathToShow: Assets/Scripts/CardManager.cs(389)
+    Line: 470
+    PathToShow: Assets/Scripts/CardManager.cs(470)
   - Text: " player???? mycards est\xE1n vinculadas al player ya no??\r"
     Note: 
     Tag: TODO
     File: D:\Users\mateo\OneDrive - meligrana.com\Documentos\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
-    Line: 395
-    PathToShow: Assets/Scripts/CardManager.cs(395)
+    Line: 476
+    PathToShow: Assets/Scripts/CardManager.cs(476)
   - Text: " ese index no lo veo yo muy claro\r"
     Note: 
     Tag: TODO
     File: D:\Users\mateo\OneDrive - meligrana.com\Documentos\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
-    Line: 400
-    PathToShow: Assets/Scripts/CardManager.cs(400)
+    Line: 481
+    PathToShow: Assets/Scripts/CardManager.cs(481)
   - Text: " esto se est\xE1 llamando antes que los downloads!!!\r"
     Note: 
     Tag: BUG
     File: D:\Users\mateo\OneDrive - meligrana.com\Documentos\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
-    Line: 287
-    PathToShow: Assets/Scripts/CardManager.cs(287)
+    Line: 367
+    PathToShow: Assets/Scripts/CardManager.cs(367)
   TagsList:
   - TODO
   - BUG

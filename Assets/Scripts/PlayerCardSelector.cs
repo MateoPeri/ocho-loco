@@ -27,6 +27,7 @@ public class PlayerCardSelector : MonoBehaviour
         {
             cardImages.ForEach(x => x.sprite = cm.GetCardSprite("back_0_0"));
             cardInfoText.gameObject.SetActive(false);
+            //cardInfoText.text = "<b><color=\"green\">" + cm.MyCards.Count + "</color></b> cartas";
         }
         else
         {
@@ -63,7 +64,8 @@ public class PlayerCardSelector : MonoBehaviour
         //Debug.Log("Cm.Mycards is: " + (cm.MyCards == null));
         if (PhotonNetwork.LocalPlayer.ActorNumber == ownerId)
             cardInfoText.text = "Te quedan <b><color=\"green\">" + cm.MyCards.Count + "</color></b> cartas";
-
+        // else
+        //    cardInfoText.text = "<b><color=\"green\">" + cm.MyCards.Count + "</color></b> cartas";
         RefreshCards();
     }
 
