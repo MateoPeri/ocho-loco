@@ -36,10 +36,7 @@ MonoBehaviour:
   - DestroySpaceship
   - Fire
   - RespawnSpaceship
-  - SyncCards
-  - SyncRoomCards
-  - RPCTest
   - SyncRoomCardsRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
-  DevRegionSetOnce: 1
+  DevRegionSetOnce: 0
