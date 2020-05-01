@@ -3415,6 +3415,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   RoomSize: 4
   multiplayerSceneIndex: 1
+  debug: 0
   roomListItemPrefab: {fileID: 2610302942040419681, guid: 1fd176c29978ac5459e70c80c7292cb4,
     type: 3}
   playerListItemPrefab: {fileID: 2610302942040419681, guid: 9fa151b5c96bd04408a182d21e1be701,

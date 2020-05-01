@@ -238,7 +238,6 @@ namespace Photon.Pun.UtilityScripts
 						this.finishedPlayers.Add(sender);
 
 						this.TurnManagerListener.OnPlayerFinished(sender, turn, move);
-
 					}
 
 					if (IsCompletedByAll)
@@ -309,7 +308,6 @@ namespace Photon.Pun.UtilityScripts
         /// <param name="turn">Turn index</param>
         /// <param name="move">Move Object data</param>
         void OnPlayerFinished(Player player, int turn, object move);
-
 
         /// <summary>
         /// Called when a turn completes due to a time constraint (timeout for a turn)

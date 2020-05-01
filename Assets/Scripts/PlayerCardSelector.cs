@@ -9,6 +9,7 @@ using System.Linq;
 public class PlayerCardSelector : MonoBehaviour
 {
     public TMP_Text playerNameText, cardInfoText;
+    public GameObject turnIndicator;
     public List<Image> cardImages;
     public List<Card> cards;
 
@@ -83,6 +84,11 @@ public class PlayerCardSelector : MonoBehaviour
             // que el popup llame a esto -> OnCardPlayOptionsSelected(pForzado);
         }
         OnCardPlayOptionsSelected(c);
+    }
+
+    public void ToggleTurnIndicator(bool value)
+    {
+        turnIndicator.SetActive(value);
     }
 
     public void ScrollToCard(Card c)
