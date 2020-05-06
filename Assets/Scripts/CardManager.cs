@@ -363,7 +363,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public bool IsMyTurn()
     {
-        int myIndex = PhotonNetwork.PlayerList.ToList().IndexOf(PhotonNetwork.LocalPlayer) + 1;
+        int myIndex = PhotonNetwork.PlayerList.ToList().IndexOf(PhotonNetwork.LocalPlayer);// + 1;
         return Turn % PhotonNetwork.PlayerList.Length == myIndex;
     }
 
