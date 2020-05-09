@@ -80,6 +80,54 @@ MonoBehaviour:
     File: D:\Users\mateo\OneDrive - meligrana.com\Documentos\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
     Line: 367
     PathToShow: Assets/Scripts/CardManager.cs(367)
+  - Text: " seguro que es dequeue??\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
+    Line: 80
+    PathToShow: Assets/Scripts/CardManager.cs(80)
+  - Text: " debug // si tu carta vale o si tienes un ocho pasas\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
+    Line: 297
+    PathToShow: Assets/Scripts/CardManager.cs(297)
+  - Text: " quitar el debug // solo robas si no puedes jugar ninguna\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
+    Line: 311
+    PathToShow: Assets/Scripts/CardManager.cs(311)
+  - Text: " player???? mycards est\xE1n vinculadas al player ya no??\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
+    Line: 317
+    PathToShow: Assets/Scripts/CardManager.cs(317)
+  - Text: " ese index no lo veo yo muy claro\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
+    Line: 323
+    PathToShow: Assets/Scripts/CardManager.cs(323)
+  - Text: " esto se est\xE1 llamando antes que los downloads!!!\r"
+    Note: 
+    Tag: BUG
+    File: D:\Users\mateo\GitHub\Ocho loco\Assets\Scripts\CardManager.cs
+    Line: 224
+    PathToShow: Assets/Scripts/CardManager.cs(224)
+  - Text: ": remove when deploying!!!\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\GitHub\Ocho loco\Assets\Scripts\NetworkController.cs
+    Line: 368
+    PathToShow: Assets/Scripts/NetworkController.cs(368)
+  - Text: ": eliminar el debug\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\GitHub\Ocho loco\Assets\Scripts\PlayerCardSelector.cs
+    Line: 152
+    PathToShow: Assets/Scripts/PlayerCardSelector.cs(152)
   TagsList:
   - TODO
   - BUG
