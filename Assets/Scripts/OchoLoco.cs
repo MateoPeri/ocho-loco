@@ -4,12 +4,12 @@ using System.Collections.Generic;
 public class OchoLoco
 {
     public const int CARD_COUNT = -1;
-    public const string ROOM_CARD_LIST = "RoomCardList";
     public const string REMAINING_CARDS = "RemainingCards";
     public const string PLAYING_CARDS = "PlayingCards";
     public const string PLAYER_CARDS = "PlayerCards";
     public const string PLAYER_READY = "IsPlayerReady";
     public const string PLAYER_LOADED_LEVEL = "PlayerLoadedLevel";
+    public const string PLAYER_VP1 = "VP1";
 
     public static Color GetColor(int colorChoice)
     {

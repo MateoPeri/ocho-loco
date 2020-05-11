@@ -39,6 +39,8 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     public int nBarajas = 1;
     public bool isPlayerTurn;
 
+    List<KeyValuePair<Player, object>> turnHistory = new List<KeyValuePair<Player, object>>();
+
     public bool debug;
 
     public int playerTurnIndex;
@@ -249,7 +251,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         int c = 0;
         foreach (Transform child in pcsParent)
         {
-            Destroy(child.gameObject); // destruir cada vez que hay que refrescar es muy bestia
+            Destroy(child.gameObject); // TODO: destruir cada vez que hay que refrescar es muy bestia
         }
         foreach (Player p in PhotonNetwork.PlayerList)
         {
@@ -307,6 +309,11 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void VoyPorUna()
     {
+        Hashtable props = new Hashtable
+        {
+            { OchoLoco.PLAYER_VP1, true }
+        };
+        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
         Debug.Log(PhotonNetwork.LocalPlayer.NickName + " va por 1!");
     }
 
@@ -332,9 +339,9 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         }
     }
 
-    public void Robar(Player p, bool force=false) // TODO player???? mycards están vinculadas al player ya no??
+    public void Robar(Player p, bool force=false)
     {
-        if (!IsMyTurn())
+        if (!IsMyTurn(PhotonNetwork.LocalPlayer) || force)
             return;
         // MyCards.Add(remainingCards.Dequeue());
         // UploadMyCards();
@@ -350,6 +357,13 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             };
             // Debug.Log("uploading my cards");
             p.SetCustomProperties(props);
+
+            // ya no vas por 1
+            Hashtable props2 = new Hashtable
+            {
+                { OchoLoco.PLAYER_VP1, false }
+            };
+            p.SetCustomProperties(props2);
             //playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].ScrollTo(myCards.Count - 1); // TODO ese index no lo veo yo muy claro
             playerCardSelectors[p.ActorNumber].ScrollToCard(MyCards[MyCards.Count - 1]);
             SyncRoomCards();
@@ -370,7 +384,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public bool CanPlayCard(Card c) // palo forzado, 8s, cartas normales
     {
-        if (!IsMyTurn())
+        if (!IsMyTurn(PhotonNetwork.LocalPlayer))
             return false;
         Card currentCard = playingCardStack.Peek();
 
@@ -392,16 +406,22 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         return false;
     }
 
-    public bool IsMyTurn()
+    public bool IsMyTurn(Player p)
     {
-        int myIndex = PhotonNetwork.PlayerList.ToList().IndexOf(PhotonNetwork.LocalPlayer);// + 1;
+        int myIndex = PhotonNetwork.PlayerList.ToList().IndexOf(p);// + 1;
         return Turn % PhotonNetwork.PlayerList.Length == myIndex;
     }
 
     public void NoHasPasado(Player sender, Player target)
     {
-        if (playingCardStack.Peek().num == 2) // y el último no ha pasado
+        if (turnHistory.Count <= Turn - 1) // TODO el primer turno es 0 o 1????
+            return;
+
+        Debug.Log("Last card was " + playingCardStack.ElementAt(1).num + ", but " + turnHistory[Turn - 2].Key.NickName + " moved " + turnHistory[Turn - 2].Value.ToString());
+        // Si la carta anterior era un 2, y has tirado algo, a robar
+        if (playingCardStack.ElementAt(1).num == 2 && turnHistory[Turn - 1].Key == target && turnHistory[Turn - 1].Value != null)
         {
+            Debug.Log(sender.NickName + " dice que " + target.NickName + " no ha pasado. A robar.");
             for (int i = 0; i < pasarPenal; i++)
             {
                 Robar(target, true);
@@ -411,11 +431,14 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void NoHasDichoVP1(Player sender, Player target)
     {
-        if (target.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
+        if (target.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL)
+            && target.CustomProperties.TryGetValue(OchoLoco.PLAYER_VP1, out object vp1))
         {
             var l = (Card[])cardL;
-            if (l.Length == 1)
+            // si tienes 1 carta y no has dicho voy por 1
+            if (l.Length == 1 && !(bool)vp1)
             {
+                Debug.Log(sender.NickName + " dice que " + target.NickName + " no ha dicho vp1. A robar.");
                 for (int i = 0; i < vp1Penal; i++)
                 {
                     Robar(target, true);
@@ -450,7 +473,11 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     public void OnTurnBegins(int turn)
     {
         Debug.Log("Turn " + turn + " begins");
-        playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].ToggleTurnIndicator(IsMyTurn()); // no pita
+        foreach (Player p in PhotonNetwork.PlayerList)
+        {
+            playerCardSelectors[p.ActorNumber].ToggleTurnIndicator(IsMyTurn(p));
+        }
+        // playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].ToggleTurnIndicator(IsMyTurn()); // no pita
     }
 
     public void OnTurnCompleted(int turn)
@@ -478,6 +505,8 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             UploadMyCards();
             SyncRoomCards();
         }
+
+        turnHistory.Add(new KeyValuePair<Player, object>(player, move));
 
         if (player.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
         {

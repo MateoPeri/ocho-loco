@@ -175,11 +175,14 @@ public class PlayerCardSelector : MonoBehaviour
     {
         if (PhotonNetwork.LocalPlayer.ActorNumber != ownerId)
         {
-            cm.NoHasPasado(PhotonNetwork.LocalPlayer, ownerPlayer);
+            Debug.Log("otro debería haber pasado");
+            cm.NoHasPasado(PhotonNetwork.LocalPlayer, ownerPlayer); // NOOOOO pasar el player de la foto
         }
         else
         {
-            cm.Paso();
+            Debug.Log("pasando yo");
+            if (cm.IsMyTurn(PhotonNetwork.LocalPlayer))
+                cm.Paso();
         }
     }
 
@@ -187,10 +190,12 @@ public class PlayerCardSelector : MonoBehaviour
     {
         if (PhotonNetwork.LocalPlayer.ActorNumber != ownerId)
         {
-            cm.NoHasDichoVP1(PhotonNetwork.LocalPlayer, ownerPlayer);
+            Debug.Log("otro no ha dicho voy por 1");
+            cm.NoHasDichoVP1(PhotonNetwork.LocalPlayer, ownerPlayer); // NOOOO pasar el player de la foto
         }
         else
         {
+            Debug.Log("yo voy por 1");
             cm.VoyPorUna();
         }
     }
