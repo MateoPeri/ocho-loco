@@ -51,7 +51,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         // photonView = GetComponent<PhotonView>();
         PhotonPeer.RegisterType(typeof(Card), (byte)'C', Card.SerializeCard, Card.DeserializeCard);
         TurnManagerListener = this;
-        TurnDuration = 30f;
+        TurnDuration = -1f;
     }
 
     /*
@@ -189,8 +189,8 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         {
             var newStack = new Stack<Card>(((Card[])_playingCards).Reverse());
             // Debug.Log("downloading playing cards. null: " + (newStack == null));
-            if (playingCardStack != null)
-                Debug.Log(playingCardStack.Peek() + " | " + newStack.Peek());
+            // if (playingCardStack != null)
+            //    Debug.Log(playingCardStack.Peek() + " | " + newStack.Peek());
             /*
             if (playingCardStack.Peek() != newStack.Peek())
             {
@@ -319,11 +319,15 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void PlayCard(Card c, Player p, int pForzado = -1)
     {
-        if (CanPlayCard(c) || debug) // TODO debug // si tu carta vale o si tienes un ocho pasas
+        if (CanPlayCard(c))// || debug) // TODO debug // si tu carta vale o si tienes un ocho pasas
         {
             playingCardStack.Push(c);
             MyCards.Remove(c); // it should always have it
-            paloForzado = pForzado;
+            if (pForzado == -1)
+                paloForzado = pForzado;
+            else
+                paloForzado = c.palo;
+            Debug.Log("Palo forzado = " + pForzado);
 
             SendMove(c, true);
         }
@@ -341,7 +345,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void Robar(Player p, bool force=false)
     {
-        if (!IsMyTurn(PhotonNetwork.LocalPlayer) || force)
+        if (!IsMyTurn(PhotonNetwork.LocalPlayer) && !force)
             return;
         // MyCards.Add(remainingCards.Dequeue());
         // UploadMyCards();
@@ -349,7 +353,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         if (p.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
         {
             Card c = remainingCards.Dequeue();
-            var l = (List<Card>)cardL;
+            var l = ((Card[])cardL).ToList();
             l.Add(c);
             Hashtable props = new Hashtable
             {
@@ -387,7 +391,11 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         if (!IsMyTurn(PhotonNetwork.LocalPlayer))
             return false;
         Card currentCard = playingCardStack.Peek();
-
+        if ((c.palo == paloForzado && c.num == currentCard.num) || c.num == 8)
+        {
+            return true;
+        }
+        /*
         if (paloForzado != -1) // si hay un palo forzado, tienes q tirar ese palo o un 8
         {
             if (c.palo == paloForzado || c.num == 8)
@@ -402,7 +410,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
                 return true;
             }
         }
-
+        */
         return false;
     }
 
@@ -414,6 +422,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void NoHasPasado(Player sender, Player target)
     {
+        Debug.Log(turnHistory.Count);
         if (turnHistory.Count <= Turn - 1) // TODO el primer turno es 0 o 1????
             return;
 
@@ -472,11 +481,14 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void OnTurnBegins(int turn)
     {
-        Debug.Log("Turn " + turn + " begins");
+        var s = "";
         foreach (Player p in PhotonNetwork.PlayerList)
         {
             playerCardSelectors[p.ActorNumber].ToggleTurnIndicator(IsMyTurn(p));
+            if (IsMyTurn(p))
+                s = p.NickName;
         }
+        Debug.Log("Turn " + turn + " begins (" + s + ")");
         // playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].ToggleTurnIndicator(IsMyTurn()); // no pita
     }
 
