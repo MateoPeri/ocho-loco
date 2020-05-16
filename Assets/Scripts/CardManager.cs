@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
@@ -52,7 +51,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     List<KeyValuePair<Player, object>> turnHistory = new List<KeyValuePair<Player, object>>();
 
-    public bool debug;
+    public bool debug, cheat;
 
     public int playerTurnIndex;
 
@@ -87,6 +86,32 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
             SyncRoomCards();
             BeginTurn();
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].MoveCards(true);
+        }
+        else if (Input.GetKey(KeyCode.RightArrow))
+        {
+            playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].MoveCards(false);
+        }
+
+        // Cheats
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            AddCard(PhotonNetwork.LocalPlayer, new Card[1] { new Card(0, 2) });
+        }
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            AddCard(PhotonNetwork.LocalPlayer, new Card[1] { new Card(0, 8) });
+        }
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            cheat = true;
         }
     }
 
@@ -303,17 +328,20 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void VoyPorUna()
     {
-        Hashtable props = new Hashtable
+        if (MyCards.Count == 1)
         {
-            { OchoLoco.PLAYER_VP1, true }
-        };
-        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
-        Debug.Log(PhotonNetwork.LocalPlayer.NickName + " va por 1!");
+            Hashtable props = new Hashtable
+            {
+                { OchoLoco.PLAYER_VP1, true }
+            };
+            PhotonNetwork.LocalPlayer.SetCustomProperties(props);
+            Debug.Log(PhotonNetwork.LocalPlayer.NickName + " va por 1!");
+        }
     }
 
     public void PlayCard(Card c, Player p, int pForzado = -1)
     {
-        if (CanPlayCard(c))// || debug) // TODO debug // si tu carta vale pasas
+        if (CanPlayCard(c) || cheat) // si tu carta vale pasas
         {
             playingCardStack.Push(c);
             MyCards.Remove(c); // it should always have it
@@ -337,29 +365,35 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         }
     }
 
-    public void Robar(Player p, bool force=false)
+    public void AddCard(Player p, Card[] c)
     {
-        Debug.Log("rob");
-        if (!IsMyTurn(PhotonNetwork.LocalPlayer) && !force)
-            return;
-        Debug.Log("intentando robar");
         if (p.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
         {
-            Card c = remainingCards.Dequeue();
             var l = ((Card[])cardL).ToList();
-            l.Add(c);
+            l.AddRange(c);
+            
             Hashtable props = new Hashtable
             {
                 { OchoLoco.PLAYER_CARDS, l.ToArray() },
                 { OchoLoco.PLAYER_VP1, false }
             };
-            // Debug.Log("uploading my cards");
-            Debug.Log(p.NickName + " roba.");
             p.SetCustomProperties(props);
-            //playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].ScrollTo(myCards.Count - 1); // TODO ese index no lo veo yo muy claro
             playerCardSelectors[p.ActorNumber].ScrollToCard(MyCards[MyCards.Count - 1]);
             SyncRoomCards();
         }
+    }
+
+    public void Robar(Player p, int amount=1, bool force=false)
+    {
+        if (!IsMyTurn(PhotonNetwork.LocalPlayer) && !force)
+            return;
+        List<Card> cs = new List<Card>();
+        for (int i = 0; i < amount; i++)
+        {
+            cs.Add(remainingCards.Dequeue());
+        }
+        AddCard(p, cs.ToArray());
+        Debug.Log(p.NickName + " roba.");
     }
 
     public bool CanPlayAnyCard(bool ignore8s)
@@ -404,15 +438,12 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         if (turnHistory.Count < Turn - 1) // TODO el primer turno es 0 o 1????
             return;
 
-        Debug.Log("Last card was " + playingCardStack.ElementAt(1).num + ", but " + turnHistory[Turn - 2].Key.NickName + " moved " + turnHistory[Turn - 2].Value.ToString());
+        // Debug.Log("Last card was " + playingCardStack.ElementAt(1).num + ", but " + turnHistory[Turn - 2].Key.NickName + " moved " + turnHistory[Turn - 2].Value.ToString());
         // Si la carta anterior era un 2, y has tirado algo, a robar
         if (playingCardStack.ElementAt(1).num == 2 && turnHistory[Turn - 2].Key.ActorNumber == target.ActorNumber && turnHistory[Turn - 2].Value != null)
         {
-            Debug.Log(sender.NickName + " dice que " + target.NickName + " no ha pasado. A robar.");
-            for (int i = 0; i < pasarPenal; i++)
-            {
-                Robar(target, true);
-            }
+            Debug.Log(sender.NickName + " dice que " + target.NickName + " no ha pasado. "+ target.NickName + " roba " + pasarPenal + "cartas.");
+            Robar(target, pasarPenal, true);
         }
     }
 
@@ -426,10 +457,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             if (l.Length == 1 && !(bool)vp1)
             {
                 Debug.Log(sender.NickName + " dice que " + target.NickName + " no ha dicho vp1. A robar.");
-                for (int i = 0; i < vp1Penal; i++)
-                {
-                    Robar(target, true);
-                }
+                Robar(target, vp1Penal, true);
             }
         }
     }
@@ -498,7 +526,8 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         if (player.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
         {
             var l = (Card[])cardL;
-            if (l.Length == 0)
+            Debug.Log("A " + player.NickName + " le quedan " + l.Length + " cartas");
+            if (l.Length == 1) // no se por que sale 1??
             {
                 // Game Finished
                 // Add ui

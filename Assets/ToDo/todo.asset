@@ -128,6 +128,30 @@ MonoBehaviour:
     File: D:\Users\mateo\GitHub\Ocho loco\Assets\Scripts\PlayerCardSelector.cs
     Line: 152
     PathToShow: Assets/Scripts/PlayerCardSelector.cs(152)
+  - Text: " seguro que es dequeue??\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\GitHub\ocho-loco\Assets\Scripts\CardManager.cs
+    Line: 84
+    PathToShow: Assets/Scripts/CardManager.cs(84)
+  - Text: " quitar el debug // solo robas si no puedes jugar ninguna\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\GitHub\ocho-loco\Assets\Scripts\CardManager.cs
+    Line: 362
+    PathToShow: Assets/Scripts/CardManager.cs(362)
+  - Text: " el primer turno es 0 o 1????\r"
+    Note: 
+    Tag: TODO
+    File: D:\Users\mateo\GitHub\ocho-loco\Assets\Scripts\CardManager.cs
+    Line: 438
+    PathToShow: Assets/Scripts/CardManager.cs(438)
+  - Text: " esto se est\xE1 llamando antes que los downloads!!!\r"
+    Note: 
+    Tag: BUG
+    File: D:\Users\mateo\GitHub\ocho-loco\Assets\Scripts\CardManager.cs
+    Line: 251
+    PathToShow: Assets/Scripts/CardManager.cs(251)
   TagsList:
   - TODO
   - BUG
