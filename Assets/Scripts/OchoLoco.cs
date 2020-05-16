@@ -5,6 +5,7 @@ public class OchoLoco
 {
     public const int CARD_COUNT = -1;
     public const string REMAINING_CARDS = "RemainingCards";
+    public const string PALO_FORZADO = "PaloForzado";
     public const string PLAYING_CARDS = "PlayingCards";
     public const string PLAYER_CARDS = "PlayerCards";
     public const string PLAYER_READY = "IsPlayerReady";

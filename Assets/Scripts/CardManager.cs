@@ -25,14 +25,25 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     public GameObject playerCardSelectorPrefab, otherPlayerSelectorPrefab;
     public Transform pcsParent;
 
-    public Image stealingStack, playingStack;
+    public Image stealingStack, playingStack, paloImage;
     public TMP_Text stealingStackText;
 
     private Dictionary<int, PlayerCardSelector> playerCardSelectors;
 
     public int pasarPenal = 3;
     public int vp1Penal = 3;
-    public int paloForzado = -1;
+    private string[] palos = new string[4] { "picas", "corazones", "diamantes", "tréboles"};
+
+    private int pf;
+    public int paloForzado
+    {
+        get { return pf; }
+        set
+        {
+            pf = value;
+            paloImage.sprite = GetCardSprite("cards_" + value + "_1");
+        }
+    }
 
     public List<Card> MyCards;
 
@@ -54,30 +65,10 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         TurnDuration = -1f;
     }
 
-    /*
-     * TODO Animación de recorrer tus cartas
-     * TODO Función que te lleve a una cierta carta (via index o via carta)
-     * TODO Cuando intentas robar, si tienes una carta que vale que te la muestre.
-     */
-
     private void Start()
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            /*
-            GroupCollection[] digits = cardSprites.Select(x => Regex.Match(x.name, @"(\d+)(\D)(\d+)").Groups).ToArray();
-            allCards = new List<Card>();
-            foreach (GroupCollection value in digits)
-            {
-                if (int.Parse(value[3].Value) == 0) // para las cartas especiales ej (cards_0_0)
-                    continue;
-                // Debug.Log(value[1].Value + ", " + value[3].Value); // 0 -> 0_12; 1 -> 0; 2 -> _; 3 -> 12
-                allCards.Add(new Card(
-                    int.Parse(value[1].Value),
-                    int.Parse(value[3].Value)
-                    ));
-            }
-            */
             allCards = new List<Card>();
             foreach (Sprite sprite in cardSprites)
             {
@@ -92,20 +83,21 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             playingCardStack = new Stack<Card>();
             playerCardList = RepartirCartas(nBarajas);
             playingCardStack.Push(remainingCards.Dequeue()); // TODO seguro que es dequeue??
+            paloForzado = playingCardStack.Peek().palo;
 
             SyncRoomCards();
             BeginTurn();
         }
     }
 
-    public void LeaveRoom() // mover a otro lado porque aquí no pinta nada
+    public void LeaveRoom()
     {
         PhotonNetwork.LeaveRoom();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        //UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
     }
 
     public override void OnLeftRoom()
@@ -162,14 +154,9 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         Hashtable roomProps = new Hashtable
         {
             { OchoLoco.REMAINING_CARDS, remainingCards.ToArray()    },
-            { OchoLoco.PLAYING_CARDS,   playingCardStack.ToArray()  }
+            { OchoLoco.PLAYING_CARDS,   playingCardStack.ToArray()  },
+            { OchoLoco.PALO_FORZADO,    paloForzado                 }
         };
-        if (debug)
-        {
-            // Debug.Log("uploading room cards... I am " + PhotonNetwork.LocalPlayer.NickName);
-            // Debug.Log("RAW sending this " + playingCardStack.Peek());
-            // Debug.Log("Sending this: " + new Stack<Card>(((Card[])roomProps[OchoLoco.PLAYING_CARDS]).Reverse()).Peek()); // funcionaaa
-        }
         photonView.RPC("SyncRoomCardsRPC", RpcTarget.All, roomProps);
     }
 
@@ -202,6 +189,11 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             playingCardStack = newStack;
         }
 
+        if (newCards.TryGetValue(OchoLoco.PALO_FORZADO, out object _palo))
+        {
+            paloForzado = (int)_palo;
+        }
+
         RefreshStacks();
     }
 
@@ -215,6 +207,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             playingCardStack.Push(toKeep); // y le añadimos solo la carta que se está jugando
         }
 
+        // paloForzado = playingCardStack.Peek().palo;
         stealingStack.sprite = GetCardSprite("back_0_0");
         stealingStackText.text = remainingCards.Count.ToString();
 
@@ -240,64 +233,65 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         {
             { OchoLoco.PLAYER_CARDS, MyCards.ToArray() }
         };
-        // Debug.Log("uploading my cards");
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
     }
 
     private void RefreshPlayerCardSelectors()
     {
-        //Debug.Log("null check " + (MyCards == null));
-        playerCardSelectors = new Dictionary<int, PlayerCardSelector>();
-        int c = 0;
-        foreach (Transform child in pcsParent)
+        if (playerCardSelectors == null)
         {
-            Destroy(child.gameObject); // TODO: destruir cada vez que hay que refrescar es muy bestia
-        }
-        foreach (Player p in PhotonNetwork.PlayerList)
-        {
-            bool isMe = p.ActorNumber == PhotonNetwork.LocalPlayer.ActorNumber;
-            GameObject obj = Instantiate((isMe) ? playerCardSelectorPrefab : otherPlayerSelectorPrefab);
-            obj.transform.SetParent(pcsParent);
-            obj.transform.localScale = Vector3.one;
-            RectTransform rt = obj.GetComponent<RectTransform>();
-
-            if (isMe)
+            playerCardSelectors = new Dictionary<int, PlayerCardSelector>();
+            int c = 0;
+            foreach (Transform child in pcsParent)
             {
-                rt.anchoredPosition = new Vector2(0, -175);
-                rt.sizeDelta = new Vector2(450, 100);
+                Destroy(child.gameObject);
             }
-            else
+            foreach (Player p in PhotonNetwork.PlayerList)
             {
-                switch (c)
+                bool isMe = p.ActorNumber == PhotonNetwork.LocalPlayer.ActorNumber;
+                GameObject obj = Instantiate(isMe ? playerCardSelectorPrefab : otherPlayerSelectorPrefab);
+                obj.transform.SetParent(pcsParent);
+                obj.transform.localScale = Vector3.one;
+                RectTransform rt = obj.GetComponent<RectTransform>();
+
+                if (isMe)
                 {
-                    case 0:
-                        rt.anchoredPosition = new Vector2(350, 0);
-                        rt.localRotation = Quaternion.Euler(new Vector3(0, 0, 90));
-                        break;
-                    case 1:
-                        rt.anchoredPosition = new Vector2(-350, 0);
-                        rt.localRotation = Quaternion.Euler(new Vector3(0, 0, 270));
-                        break;
-                    case 2:
-                        rt.anchoredPosition = new Vector2(0, 175);
-                        rt.localRotation = Quaternion.Euler(new Vector3(0, 0, 180));
-                        break;
-                    default:
-                        break;
+                    rt.anchoredPosition = new Vector2(0, -175);
+                    rt.sizeDelta = new Vector2(450, 100);
                 }
-                c++;
+                else
+                {
+                    switch (c)
+                    {
+                        case 0:
+                            rt.anchoredPosition = new Vector2(350, 0);
+                            rt.localRotation = Quaternion.Euler(new Vector3(0, 0, 90));
+                            break;
+                        case 1:
+                            rt.anchoredPosition = new Vector2(-350, 0);
+                            rt.localRotation = Quaternion.Euler(new Vector3(0, 0, 270));
+                            break;
+                        case 2:
+                            rt.anchoredPosition = new Vector2(0, 175);
+                            rt.localRotation = Quaternion.Euler(new Vector3(0, 0, 180));
+                            break;
+                        default:
+                            break;
+                    }
+                    c++;
+                }
+
+                var item = obj.GetComponent<PlayerCardSelector>();
+                item.Initialize(p, p.ActorNumber, p.NickName, p.IsMasterClient);
+                playerCardSelectors.Add(p.ActorNumber, item);
             }
-
-            var item = obj.GetComponent<PlayerCardSelector>();
-            item.Initialize(p, p.ActorNumber, p.NickName, p.IsMasterClient);
-
-            /*
-            if (p.CustomProperties.TryGetValue(OchoLoco.PLAYER_READY, out object isPlayerReady))
+        }
+        else
+        {
+            foreach (var item in playerCardSelectors.Values)
             {
-                item.SetPlayerTurn(isPlayerTurn);
+                item.RefreshCards();
             }
-            */
-            playerCardSelectors.Add(p.ActorNumber, item);
         }
     }
 
@@ -319,15 +313,15 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void PlayCard(Card c, Player p, int pForzado = -1)
     {
-        if (CanPlayCard(c))// || debug) // TODO debug // si tu carta vale o si tienes un ocho pasas
+        if (CanPlayCard(c))// || debug) // TODO debug // si tu carta vale pasas
         {
             playingCardStack.Push(c);
             MyCards.Remove(c); // it should always have it
-            if (pForzado == -1)
+            if (pForzado != -1)
                 paloForzado = pForzado;
             else
                 paloForzado = c.palo;
-            Debug.Log("Palo forzado = " + pForzado);
+            Debug.Log("Palo forzado = " + paloForzado);
 
             SendMove(c, true);
         }
@@ -345,11 +339,10 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void Robar(Player p, bool force=false)
     {
+        Debug.Log("rob");
         if (!IsMyTurn(PhotonNetwork.LocalPlayer) && !force)
             return;
-        // MyCards.Add(remainingCards.Dequeue());
-        // UploadMyCards();
-
+        Debug.Log("intentando robar");
         if (p.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
         {
             Card c = remainingCards.Dequeue();
@@ -357,17 +350,12 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             l.Add(c);
             Hashtable props = new Hashtable
             {
-                { OchoLoco.PLAYER_CARDS, l.ToArray() }
-            };
-            // Debug.Log("uploading my cards");
-            p.SetCustomProperties(props);
-
-            // ya no vas por 1
-            Hashtable props2 = new Hashtable
-            {
+                { OchoLoco.PLAYER_CARDS, l.ToArray() },
                 { OchoLoco.PLAYER_VP1, false }
             };
-            p.SetCustomProperties(props2);
+            // Debug.Log("uploading my cards");
+            Debug.Log(p.NickName + " roba.");
+            p.SetCustomProperties(props);
             //playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].ScrollTo(myCards.Count - 1); // TODO ese index no lo veo yo muy claro
             playerCardSelectors[p.ActorNumber].ScrollToCard(MyCards[MyCards.Count - 1]);
             SyncRoomCards();
@@ -388,29 +376,19 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public bool CanPlayCard(Card c) // palo forzado, 8s, cartas normales
     {
+        // Debug.Log("es tu turno: " + IsMyTurn(PhotonNetwork.LocalPlayer));
         if (!IsMyTurn(PhotonNetwork.LocalPlayer))
             return false;
         Card currentCard = playingCardStack.Peek();
-        if ((c.palo == paloForzado && c.num == currentCard.num) || c.num == 8)
+        // Si la última carta jugada fue un 8, da igual el número que tires
+        bool num = (currentCard.num == 8) ? true : c.num == currentCard.num;
+        // Debug.Log("Palo? (" + palos[paloForzado] + ") " + (c.palo == paloForzado));
+        // Debug.Log("Número? (" + currentCard.num + ") " + num);
+
+        if (c.palo == paloForzado || num || c.num == 8)
         {
             return true;
         }
-        /*
-        if (paloForzado != -1) // si hay un palo forzado, tienes q tirar ese palo o un 8
-        {
-            if (c.palo == paloForzado || c.num == 8)
-            {
-                return true;
-            }
-        }
-        else
-        {
-            if (Card.CompareCards(c, currentCard) || c.num == 8) // si tu carta vale o si tienes un ocho pasas
-            {
-                return true;
-            }
-        }
-        */
         return false;
     }
 
@@ -423,12 +401,12 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     public void NoHasPasado(Player sender, Player target)
     {
         Debug.Log(turnHistory.Count);
-        if (turnHistory.Count <= Turn - 1) // TODO el primer turno es 0 o 1????
+        if (turnHistory.Count < Turn - 1) // TODO el primer turno es 0 o 1????
             return;
 
         Debug.Log("Last card was " + playingCardStack.ElementAt(1).num + ", but " + turnHistory[Turn - 2].Key.NickName + " moved " + turnHistory[Turn - 2].Value.ToString());
         // Si la carta anterior era un 2, y has tirado algo, a robar
-        if (playingCardStack.ElementAt(1).num == 2 && turnHistory[Turn - 1].Key == target && turnHistory[Turn - 1].Value != null)
+        if (playingCardStack.ElementAt(1).num == 2 && turnHistory[Turn - 2].Key.ActorNumber == target.ActorNumber && turnHistory[Turn - 2].Value != null)
         {
             Debug.Log(sender.NickName + " dice que " + target.NickName + " no ha pasado. A robar.");
             for (int i = 0; i < pasarPenal; i++)
@@ -459,8 +437,6 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     public Card GetCardFromSprite(Sprite s)
     {
         GroupCollection digits = Regex.Match(s.name, @"(\d+)(\D)(\d+)").Groups;
-        //if (int.Parse(digits[3].Value) == 0) // para las cartas especiales ej (cards_0_0)
-        //    return new Card(-1, -1);
         return new Card(int.Parse(digits[1].Value), int.Parse(digits[3].Value));
     }
 
@@ -489,7 +465,6 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
                 s = p.NickName;
         }
         Debug.Log("Turn " + turn + " begins (" + s + ")");
-        // playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].ToggleTurnIndicator(IsMyTurn()); // no pita
     }
 
     public void OnTurnCompleted(int turn)
