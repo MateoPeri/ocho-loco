@@ -12,48 +12,55 @@ MonoBehaviour:
   m_Script: {fileID: 1664531713, guid: 5a8331e4738a92a499f83bfaba607256, type: 3}
   m_Name: TODOProfile
   m_EditorClassIdentifier: 
-  dirtyFlag: 1
+  dirtyFlag: 0
   dataCache:
     mInternalData:
-    - key: 08177937e3a509f4f98b736577e3db90
+    - key: 2da97d04299a75849807c5a1a0238576
       file:
-        lastProcessedTime: 636889962197075153
-        lastModifiedTime: 636889961106114009
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637253066976392501
+        identified: []
+    - key: 5edae346efd65054db709a010e58d077
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637244705141395673
+        identified: []
+    - key: 63c69be7f5779b144903125446c49e33
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637253067169049835
         identified:
         - filters: []
-          comment: Fix My Start function
-          line: 7
-        - filters: []
-          comment: Fix My Start function
-          line: 8
-        - filters:
-          - person
-          comment: Fix My Start function @Person
-          line: 9
-        - filters:
-          - person
-          - high
-          comment: '@Person needs to determine what needs to be generated on Start.
-            This is of #high importance'
-          line: 10
-        - filters: []
-          comment: Write some code in Update
-          line: 16
-    - key: b0045063aba607049bd3b23e1a452023
+          comment: el primer turno es 0 o 1????
+          line: 438
+    - key: 8e24386682a6af342b500d4ac098a575
       file:
-        lastProcessedTime: 636889962197075153
-        lastModifiedTime: 636889961094315511
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637244705141375864
+        identified: []
+    - key: b579f4077cd5953489882224d803b137
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637244705141385726
+        identified: []
+    - key: f5461d3d5bb99e942a7b0bee17adce37
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637244705141322523
+        identified: []
+    - key: f642c236a1426364d99f3e69471605b1
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637250793626819105
+        identified: []
+    - key: fd430a8c3e6782b40bc1f23b16c637cb
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637244705141332496
         identified:
         - filters: []
-          comment: This comment starts with one of the identifiers, so it will be
-            picked up and displayed
-          line: 5
-        - filters:
-          - high
-          - person
-          comment: '#High importance, @Person add the field values required for the
-            object'
-          line: 9
+          comment: remove when deploying!!!
+          line: 368
   mSearchLocations:
   - Scripts/
   mIgnoreLocations: []
