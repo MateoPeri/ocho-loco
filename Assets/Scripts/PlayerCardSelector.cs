@@ -63,7 +63,7 @@ public class PlayerCardSelector : MonoBehaviour
                 }
             }
 
-            for (int i = 0; i < Mathf.Max(0, 4 - cm.MyCards.Count); i++)
+            for (int i = 0; i < Mathf.Max(0, cardImages.Count - cm.MyCards.Count); i++) // cI.count o 4?
             {
                 cardImages[cardImages.Count - (i+1)].gameObject.SetActive(false);
                 lastActiveImgIndex = cardImages.Count - (i+2);
@@ -80,12 +80,8 @@ public class PlayerCardSelector : MonoBehaviour
         isMaster = master;
         cm = CardManager.Instance;
         playerNameText.text = isMaster ? playerName + " (<color=\"blue\">Master</color>)" : playerName;
-        //Debug.Log("Cm is: " + (cm == null));
-        //Debug.Log("Cm.Mycards is: " + (cm.MyCards == null));
         if (PhotonNetwork.LocalPlayer.ActorNumber == ownerId)
             cardInfoText.text = "Te quedan <b><color=\"green\">" + cm.MyCards.Count + "</color></b> cartas";
-        // else
-        //    cardInfoText.text = "<b><color=\"green\">" + cm.MyCards.Count + "</color></b> cartas";
         RefreshCards();
     }
 
@@ -175,11 +171,14 @@ public class PlayerCardSelector : MonoBehaviour
     {
         if (PhotonNetwork.LocalPlayer.ActorNumber != ownerId)
         {
-            cm.NoHasPasado(PhotonNetwork.LocalPlayer, ownerPlayer);
+            Debug.Log("otro debería haber pasado");
+            cm.NoHasPasado(PhotonNetwork.LocalPlayer, ownerPlayer); // NOOOOO pasar el player de la foto
         }
         else
         {
-            cm.Paso();
+            Debug.Log("pasando yo");
+            if (cm.IsMyTurn(PhotonNetwork.LocalPlayer))
+                cm.Paso();
         }
     }
 
@@ -187,10 +186,12 @@ public class PlayerCardSelector : MonoBehaviour
     {
         if (PhotonNetwork.LocalPlayer.ActorNumber != ownerId)
         {
-            cm.NoHasDichoVP1(PhotonNetwork.LocalPlayer, ownerPlayer);
+            Debug.Log("otro no ha dicho voy por 1");
+            cm.NoHasDichoVP1(PhotonNetwork.LocalPlayer, ownerPlayer); // NOOOO pasar el player de la foto
         }
         else
         {
+            Debug.Log("yo voy por 1");
             cm.VoyPorUna();
         }
     }
@@ -214,15 +215,6 @@ public class PlayerCardSelector : MonoBehaviour
     float tweenDuration = 0.3f;
     public void TweenMove(int index)
     {
-        //bool neg = index < firstCardIndex; // seguro?
-        /*
-        float dstA = Mathf.Abs(index - firstCardIndex);
-        float dstB = nfmod(firstCardIndex - index, cm.MyCards.Count);
-        float d = (firstCardIndex < index) ? dstA : dstB; //  Mathf.Min(dstA, dstB);
-        bool neg = d > cm.MyCards.Count / 2; //= wrapDst; // > o <?
-        Debug.Log("From " + firstCardIndex + " to " + index + " (count="+cm.MyCards.Count+"). Neg: " + neg + ". dist: " + d);
-        */
-
         int dir = GetDirection(firstCardIndex, index, cm.MyCards.Count);
         if (dir == 0)
             return;

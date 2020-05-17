@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1664531713, guid: 5a8331e4738a92a499f83bfaba607256, type: 3}
+  m_Name: TODOProfile
+  m_EditorClassIdentifier: 
+  dirtyFlag: 0
+  dataCache:
+    mInternalData:
+    - key: 2da97d04299a75849807c5a1a0238576
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637253066976392501
+        identified: []
+    - key: 5edae346efd65054db709a010e58d077
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637244705141395673
+        identified: []
+    - key: 63c69be7f5779b144903125446c49e33
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637253067169049835
+        identified:
+        - filters: []
+          comment: el primer turno es 0 o 1????
+          line: 438
+    - key: 8e24386682a6af342b500d4ac098a575
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637244705141375864
+        identified: []
+    - key: b579f4077cd5953489882224d803b137
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637244705141385726
+        identified: []
+    - key: f5461d3d5bb99e942a7b0bee17adce37
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637244705141322523
+        identified: []
+    - key: f642c236a1426364d99f3e69471605b1
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637250793626819105
+        identified: []
+    - key: fd430a8c3e6782b40bc1f23b16c637cb
+      file:
+        lastProcessedTime: 637253071501071607
+        lastModifiedTime: 637244705141332496
+        identified:
+        - filters: []
+          comment: remove when deploying!!!
+          line: 368
+  mSearchLocations:
+  - Scripts/
+  mIgnoreLocations: []
+  mFileTypes:
+  - cs
+  - js
+  mSearchRegions:
+  - startSequence: ///
+    endSequence: 
+  - startSequence: //
+    endSequence: 
+  - startSequence: /*
+    endSequence: '*/'
+  mIgnoreRegions:
+  - startSequence: '"'
+    endSequence: '"'
+  mSkipSequences:
+  - skipSequence: \
+    skipCount: 1
+  mIdentifiers:
+  - 'todo:'
+  - todo
+  mFilterMarkers:
+  - '@'
+  - '#'
