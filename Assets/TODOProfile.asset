@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1664531713, guid: 5a8331e4738a92a499f83bfaba607256, type: 3}
+  m_Name: TODOProfile
+  m_EditorClassIdentifier: 
+  dirtyFlag: 1
+  dataCache:
+    mInternalData:
+    - key: 08177937e3a509f4f98b736577e3db90
+      file:
+        lastProcessedTime: 636889962197075153
+        lastModifiedTime: 636889961106114009
+        identified:
+        - filters: []
+          comment: Fix My Start function
+          line: 7
+        - filters: []
+          comment: Fix My Start function
+          line: 8
+        - filters:
+          - person
+          comment: Fix My Start function @Person
+          line: 9
+        - filters:
+          - person
+          - high
+          comment: '@Person needs to determine what needs to be generated on Start.
+            This is of #high importance'
+          line: 10
+        - filters: []
+          comment: Write some code in Update
+          line: 16
+    - key: b0045063aba607049bd3b23e1a452023
+      file:
+        lastProcessedTime: 636889962197075153
+        lastModifiedTime: 636889961094315511
+        identified:
+        - filters: []
+          comment: This comment starts with one of the identifiers, so it will be
+            picked up and displayed
+          line: 5
+        - filters:
+          - high
+          - person
+          comment: '#High importance, @Person add the field values required for the
+            object'
+          line: 9
+  mSearchLocations:
+  - Scripts/
+  mIgnoreLocations: []
+  mFileTypes:
+  - cs
+  - js
+  mSearchRegions:
+  - startSequence: ///
+    endSequence: 
+  - startSequence: //
+    endSequence: 
+  - startSequence: /*
+    endSequence: '*/'
+  mIgnoreRegions:
+  - startSequence: '"'
+    endSequence: '"'
+  mSkipSequences:
+  - skipSequence: \
+    skipCount: 1
+  mIdentifiers:
+  - 'todo:'
+  - todo
+  mFilterMarkers:
+  - '@'
+  - '#'

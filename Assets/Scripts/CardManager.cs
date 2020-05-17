@@ -81,7 +81,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             remainingCards = new Queue<Card>(allCards);
             playingCardStack = new Stack<Card>();
             playerCardList = RepartirCartas(nBarajas);
-            playingCardStack.Push(remainingCards.Dequeue()); // TODO seguro que es dequeue??
+            playingCardStack.Push(remainingCards.Dequeue());
             paloForzado = playingCardStack.Peek().palo;
 
             SyncRoomCards();
@@ -248,7 +248,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             // Debug.Log("downloading my cards. null: " + (MyCards == null));
         }
 
-        RefreshPlayerCardSelectors(); // BUG esto se está llamando antes que los downloads!!!
+        RefreshPlayerCardSelectors();
     }
 
     // Cada jugador sube sus cartas al final de cada turno. El Master Client las recoge y las guarda en las properties de la room.
@@ -359,7 +359,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     {
         RefreshStacks(); // asegurarse de que el remaining stack se rellena
 
-        if ((!CanPlayAnyCard(true) && remainingCards.Count > 0))// || true) // TODO quitar el debug // solo robas si no puedes jugar ninguna
+        if (!CanPlayAnyCard(true) && remainingCards.Count > 0) // solo robas si no puedes jugar ninguna
         {
             Robar(PhotonNetwork.LocalPlayer);
         }
