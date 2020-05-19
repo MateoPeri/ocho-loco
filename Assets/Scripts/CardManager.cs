@@ -13,6 +13,7 @@ using ExitGames.Client.Photon;
 public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallbacks
 {
     public static CardManager Instance;
+    public Console console;
 
     public List<Sprite> cardSprites = new List<Sprite>();
     public List<Card> allCards;
@@ -31,7 +32,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public int pasarPenal = 3;
     public int vp1Penal = 3;
-    private string[] palos = new string[4] { "picas", "corazones", "diamantes", "tréboles"};
+    public static string[] palos = new string[4] { "picas", "corazones", "diamantes", "tréboles"};
 
     private int pf;
     public int paloForzado
@@ -66,6 +67,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     private void Start()
     {
+        console = Console.Instance;
         if (PhotonNetwork.IsMasterClient)
         {
             allCards = new List<Card>();
@@ -129,7 +131,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     {
         //PhotonNetwork.Disconnect();
         //UnityEngine.SceneManagement.SceneManager.LoadScene(0);
-        Debug.Log("Left room");
+        console.WriteLine("Has salido de la sala.");
     }
 
     public List<Card>[] RepartirCartas(int n = 1)
@@ -168,7 +170,6 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     {
         if (targetPlayer.ActorNumber == PhotonNetwork.LocalPlayer.ActorNumber)
         {
-            // Debug.Log("downloading player cards due to player update");
             DownloadMyCards();
         }
     }
@@ -188,29 +189,15 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     [PunRPC]
     public void SyncRoomCardsRPC(Hashtable newCards)
     {
-        // Debug.Log("syncing room cards");
-        // Debug.Log("Got this: " + new Stack<Card>(((Card[])newCards[OchoLoco.PLAYING_CARDS]).Reverse()).Peek());
         if (newCards.TryGetValue(OchoLoco.REMAINING_CARDS, out object _remainingCards))
         {
             var arr = (Card[])_remainingCards;
             remainingCards = new Queue<Card>(arr);
-            // Debug.Log("downloading remaining cards. null: " + (remainingCards == null));
         }
 
         if (newCards.TryGetValue(OchoLoco.PLAYING_CARDS, out object _playingCards))
         {
             var newStack = new Stack<Card>(((Card[])_playingCards).Reverse());
-            // Debug.Log("downloading playing cards. null: " + (newStack == null));
-            // if (playingCardStack != null)
-            //    Debug.Log(playingCardStack.Peek() + " | " + newStack.Peek());
-            /*
-            if (playingCardStack.Peek() != newStack.Peek())
-            {
-                Debug.Log("trying again...");
-                UploadRoomCards();
-                return;
-            }
-            */
             playingCardStack = newStack;
         }
 
@@ -245,7 +232,6 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         {
             var cs = (Card[])_myCards;
             MyCards = cs.ToList();
-            // Debug.Log("downloading my cards. null: " + (MyCards == null));
         }
 
         RefreshPlayerCardSelectors();
@@ -322,7 +308,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void Paso()
     {
-        Debug.Log(PhotonNetwork.LocalPlayer.NickName + " pasa!");
+        console.WriteLine(PhotonNetwork.LocalPlayer.NickName + " pasa!");
         SendMove(null, true);
     }
 
@@ -335,7 +321,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
                 { OchoLoco.PLAYER_VP1, true }
             };
             PhotonNetwork.LocalPlayer.SetCustomProperties(props);
-            Debug.Log(PhotonNetwork.LocalPlayer.NickName + " va por 1!");
+            console.WriteLine(PhotonNetwork.LocalPlayer.NickName + " va por 1!");
         }
     }
 
@@ -346,10 +332,14 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             playingCardStack.Push(c);
             MyCards.Remove(c); // it should always have it
             if (pForzado != -1)
+            {
                 paloForzado = pForzado;
+                console.WriteLine("El palo es " + palos[paloForzado]);
+            }
             else
+            {
                 paloForzado = c.palo;
-            Debug.Log("Palo forzado = " + paloForzado);
+            }
 
             SendMove(c, true);
         }
@@ -393,7 +383,8 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             cs.Add(remainingCards.Dequeue());
         }
         AddCard(p, cs.ToArray());
-        Debug.Log(p.NickName + " roba.");
+        var c = amount == 1 ? " carta." : " cartas.";
+        console.WriteLine(p.NickName + " roba " + amount + c);
     }
 
     public bool CanPlayAnyCard(bool ignore8s)
@@ -410,7 +401,6 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public bool CanPlayCard(Card c) // palo forzado, 8s, cartas normales
     {
-        // Debug.Log("es tu turno: " + IsMyTurn(PhotonNetwork.LocalPlayer));
         if (!IsMyTurn(PhotonNetwork.LocalPlayer))
             return false;
         Card currentCard = playingCardStack.Peek();
@@ -434,7 +424,6 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void NoHasPasado(Player sender, Player target)
     {
-        Debug.Log(turnHistory.Count);
         if (turnHistory.Count < Turn - 1) // TODO el primer turno es 0 o 1????
             return;
 
@@ -442,7 +431,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         // Si la carta anterior era un 2, y has tirado algo, a robar
         if (playingCardStack.ElementAt(1).num == 2 && turnHistory[Turn - 2].Key.ActorNumber == target.ActorNumber && turnHistory[Turn - 2].Value != null)
         {
-            Debug.Log(sender.NickName + " dice que " + target.NickName + " no ha pasado. "+ target.NickName + " roba " + pasarPenal + "cartas.");
+            console.WriteLine(target.NickName + " no ha pasado!\nA robar!", sender.NickName);
             Robar(target, pasarPenal, true);
         }
     }
@@ -453,10 +442,10 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             && target.CustomProperties.TryGetValue(OchoLoco.PLAYER_VP1, out object vp1))
         {
             var l = (Card[])cardL;
-            // si tienes 1 carta y no has dicho voy por 1
+            // si tienes 1 carta y no has dicho voy por 1, robas
             if (l.Length == 1 && !(bool)vp1)
             {
-                Debug.Log(sender.NickName + " dice que " + target.NickName + " no ha dicho vp1. A robar.");
+                console.WriteLine(target.NickName + " no ha dicho voy por 1!\nA robar!", sender.NickName);
                 Robar(target, vp1Penal, true);
             }
         }
@@ -492,31 +481,18 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             if (IsMyTurn(p))
                 s = p.NickName;
         }
-        Debug.Log("Turn " + turn + " begins (" + s + ")");
+        console.WriteLine("Turno " + turn + " (" + s + ")");
     }
 
-    public void OnTurnCompleted(int turn)
-    {
-        Debug.Log("Turn " + turn + " complete");
-    }
+    public void OnTurnCompleted(int turn) { return; }
 
-    public void OnPlayerMove(Player player, int turn, object move)
-    {
-        Debug.Log("Player " + player.NickName + " moved (" + move + ")");
-        if (player == PhotonNetwork.LocalPlayer)
-        {
-            // Debug.Log("Syncying");
-            UploadMyCards();
-            SyncRoomCards();
-        }
-    }
+    public void OnPlayerMove(Player player, int turn, object move) { return; }
 
     public void OnPlayerFinished(Player player, int turn, object move)
     {
-        Debug.Log("Player " + player.NickName + " moved and finished (" + move + ")");
+        console.WriteLine(move, player.NickName);
         if (player == PhotonNetwork.LocalPlayer)
         {
-            // Debug.Log("Syncying");
             UploadMyCards();
             SyncRoomCards();
         }
@@ -526,22 +502,20 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         if (player.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
         {
             var l = (Card[])cardL;
-            Debug.Log("A " + player.NickName + " le quedan " + l.Length + " cartas");
+            console.WriteLine("A " + player.NickName + " le quedan " + l.Length + " cartas");
             if (l.Length == 1) // no se por que sale 1??
             {
-                // Game Finished
-                // Add ui
-                Debug.Log(player.NickName + " won!!!");
+                console.WriteLine(player.NickName + " gana la partida!!!");
                 return;
             }
         }
 
-        BeginTurn(); // new turn
+        BeginTurn();
     }
 
     public void OnTurnTimeEnds(int turn)
     {
-        Debug.Log("turn time's up!");
+        return;
     }
 }
 
@@ -585,7 +559,7 @@ public struct Card
 
     public override string ToString()
     {
-        return string.Format("Card(Palo={0}, Num={1})", palo, num);
+        return string.Format("{0} de {1})", num, CardManager.palos[palo]);
     }
 
     public override int GetHashCode()
