@@ -308,7 +308,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void Paso()
     {
-        console.WriteLine(PhotonNetwork.LocalPlayer.NickName + " pasa!");
+        console.WriteLine("Paso!", PhotonNetwork.LocalPlayer.NickName);
         SendMove(null, true);
     }
 
@@ -321,7 +321,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
                 { OchoLoco.PLAYER_VP1, true }
             };
             PhotonNetwork.LocalPlayer.SetCustomProperties(props);
-            console.WriteLine(PhotonNetwork.LocalPlayer.NickName + " va por 1!");
+            console.WriteLine("Voy por una!", PhotonNetwork.LocalPlayer.NickName);
         }
     }
 
@@ -481,7 +481,8 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             if (IsMyTurn(p))
                 s = p.NickName;
         }
-        console.WriteLine("Turno " + turn + " (" + s + ")");
+        if (PhotonNetwork.IsMasterClient)
+            console.WriteLine("Turno " + turn + " (" + s + ")");
     }
 
     public void OnTurnCompleted(int turn) { return; }
@@ -502,7 +503,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         if (player.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
         {
             var l = (Card[])cardL;
-            console.WriteLine("A " + player.NickName + " le quedan " + l.Length + " cartas");
+            // console.WriteLine("A " + player.NickName + " le quedan " + l.Length + " cartas"); TODO un número debajo del nombre del jugador
             if (l.Length == 1) // no se por que sale 1??
             {
                 console.WriteLine(player.NickName + " gana la partida!!!");
@@ -559,7 +560,7 @@ public struct Card
 
     public override string ToString()
     {
-        return string.Format("{0} de {1})", num, CardManager.palos[palo]);
+        return string.Format("{0} de {1}", num, CardManager.palos[palo]);
     }
 
     public override int GetHashCode()
