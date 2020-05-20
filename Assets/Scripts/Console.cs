@@ -1,10 +1,14 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using TMPro;
+using Photon.Pun;
+using Photon.Pun.UtilityScripts;
+using Photon.Realtime;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
+using ExitGames.Client.Photon;
 
-public class Console : MonoBehaviour
+public class Console : MonoBehaviourPun
 {
     #region Logic
     public Stack<ConsoleMessage> messageHistory;
@@ -13,7 +17,21 @@ public class Console : MonoBehaviour
     private void AddToStack(ConsoleMessage msg)
     {
         messageHistory.Push(msg);
-        Debug.Log("Adding " + msg.message + " | " + messageHistory.Peek().message);
+        Hashtable msgs = new Hashtable
+        {
+            { OchoLoco.CONSOLE_HISTORY, messageHistory.ToArray() }
+        };
+        photonView.RPC("SyncRoomCardsRPC", RpcTarget.All, msgs);
+    }
+
+    [PunRPC]
+    public void SyncMessagesRPC(Hashtable msgs)
+    {
+        if (msgs.TryGetValue(OchoLoco.CONSOLE_HISTORY, out object _msgHistory))
+        {
+            var newStack = new Stack<ConsoleMessage>(((ConsoleMessage[])_msgHistory).Reverse());
+            messageHistory = newStack;
+        }
         HardRefresh(); // TODO esto debería ser refresh
     }
 
@@ -68,7 +86,6 @@ public class Console : MonoBehaviour
             if (messageHistory == null)
                 return null;
             var max = displayAll ? messageHistory.Count : maxMessages;
-            Debug.Log("taking " + max);
             return new Stack<ConsoleMessage>(messageHistory.Take(max));
         }
     }
