@@ -10,6 +10,9 @@
 /[Ll]ogs/
 /[Mm]emoryCaptures/
 
+# Subimos la carpeta .assets para no tener que reimportar todas las assets al compilar
+!/[Ll]ibrary/*.asset
+
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
 
