@@ -2120,10 +2120,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerNameText: {fileID: 1334068386321508268}
   cardInfoText: {fileID: 6003474302920508377}
-<<<<<<< Updated upstream
   turnIndicator: {fileID: 0}
-=======
->>>>>>> Stashed changes
   pForzadoPopup: {fileID: 97077094882916960}
   cardPositions:
   - {fileID: 8601988345343927442}

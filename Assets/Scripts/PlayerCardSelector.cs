@@ -11,6 +11,7 @@ using DG.Tweening;
 public class PlayerCardSelector : MonoBehaviour
 {
     public TMP_Text playerNameText, cardInfoText;
+    public GameObject turnIndicator;
     public GameObject pForzadoPopup;
     public Transform[] cardPositions;
 
@@ -67,7 +68,7 @@ public class PlayerCardSelector : MonoBehaviour
                 cardImages[cardImages.Count - (i+1)].gameObject.SetActive(false);
                 lastActiveImgIndex = cardImages.Count - (i+2);
             }
-            cardInfoText.text = "Te quedan <b><color=\"blue\">" + cm.MyCards.Count + "</color></b> cartas";
+            cardInfoText.text = "Te quedan <b><color=\"green\">" + cm.MyCards.Count + "</color></b> cartas";
         }
     }
 
@@ -80,7 +81,7 @@ public class PlayerCardSelector : MonoBehaviour
         cm = CardManager.Instance;
         playerNameText.text = isMaster ? playerName + " (<color=\"blue\">Master</color>)" : playerName;
         if (PhotonNetwork.LocalPlayer.ActorNumber == ownerId)
-            cardInfoText.text = "Te quedan <b><color=\"blue\">" + cm.MyCards.Count + "</color></b> cartas";
+            cardInfoText.text = "Te quedan <b><color=\"green\">" + cm.MyCards.Count + "</color></b> cartas";
         RefreshCards();
     }
 
@@ -107,10 +108,7 @@ public class PlayerCardSelector : MonoBehaviour
 
     public void ToggleTurnIndicator(bool value)
     {
-        Color c = value ? Color.green : Color.white;
-        c.a = 100;
-        GetComponent<Image>().color = c;
-        // turnIndicator.SetActive(value);
+        turnIndicator.SetActive(value);
     }
 
     private void Update()
