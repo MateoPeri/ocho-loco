@@ -482,7 +482,10 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
                 s = p.NickName;
         }
         if (PhotonNetwork.IsMasterClient)
+        {
             console.WriteLine("Turno " + turn + " (" + s + ")");
+            Debug.Log("Sending turn beginning sequence" + PhotonNetwork.LocalPlayer.NickName);
+        }
     }
 
     public void OnTurnCompleted(int turn) { return; }
@@ -491,7 +494,8 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public void OnPlayerFinished(Player player, int turn, object move)
     {
-        console.WriteLine(move, player.NickName);
+        if (PhotonNetwork.IsMasterClient)
+            console.WriteLine(move, player.NickName);
         if (player == PhotonNetwork.LocalPlayer)
         {
             UploadMyCards();
@@ -499,6 +503,9 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         }
 
         turnHistory.Add(new KeyValuePair<Player, object>(player, move));
+
+        if (!PhotonNetwork.IsMasterClient)
+            return;
 
         if (player.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
         {

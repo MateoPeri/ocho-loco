@@ -8,20 +8,21 @@ using Photon.Realtime;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using ExitGames.Client.Photon;
 
-public class Console : MonoBehaviourPun
+public class Console : MonoBehaviourPun //, IPunObservable
 {
     #region Logic
-    public Stack<ConsoleMessage> messageHistory;
+    public Stack<string> messageHistory;
     public const string defaultSender = "SYSTEM";
 
-    private void AddToStack(ConsoleMessage msg)
+    private void AddToStack(string msg)
     {
         messageHistory.Push(msg);
         Hashtable msgs = new Hashtable
         {
             { OchoLoco.CONSOLE_HISTORY, messageHistory.ToArray() }
         };
-        photonView.RPC("SyncRoomCardsRPC", RpcTarget.All, msgs);
+        photonView.RPC("SyncMessagesRPC", RpcTarget.Others, msgs);
+        HardRefresh();
     }
 
     [PunRPC]
@@ -29,48 +30,22 @@ public class Console : MonoBehaviourPun
     {
         if (msgs.TryGetValue(OchoLoco.CONSOLE_HISTORY, out object _msgHistory))
         {
-            var newStack = new Stack<ConsoleMessage>(((ConsoleMessage[])_msgHistory).Reverse());
+            var newStack = new Stack<string>(((string[])_msgHistory).Reverse());
             messageHistory = newStack;
         }
         HardRefresh(); // TODO esto debería ser refresh
     }
 
-    public void Write(object obj)
-    {
-        var currentMsg = messageHistory.Pop();
-        var newMsg = currentMsg.message.ToString() + obj.ToString();
-        currentMsg.message = newMsg;
-        AddToStack(currentMsg);
-    }
-
     public void WriteLine(object content, string sender=null)
     {
-        AddToStack(new ConsoleMessage(content, sender));
+        if (content == null)
+            return;
+        AddToStack(Parse(sender == null ? defaultSender : sender, content.ToString()));
     }
 
-    public void WriteLine(ConsoleMessage msg)
+    public string Parse(string sender, string message)
     {
-        AddToStack(msg);
-    }
-
-    public class ConsoleMessage
-    {
-        public string sender;
-        public object message;
-
-        public ConsoleMessage(object message, string sender=null)
-        {
-            this.message = message;
-            if (sender != null)
-                this.sender = sender;
-            else
-                this.sender = defaultSender;
-        }
-
-        public override string ToString()
-        {
-            return string.Format("<b><color=\"red\">{0}</color></b>: {1}", sender, message);
-        }
+        return string.Format("<b><color=\"red\">{0}</color></b>: {1}", sender, message);
     }
     #endregion
 
@@ -79,14 +54,14 @@ public class Console : MonoBehaviourPun
     public string initalMessage = "";
     public int maxMessages = 20;
     public bool displayAll = false;
-    public Stack<ConsoleMessage> messagesToShow
+    public Stack<string> messagesToShow
     {
         get
         {
             if (messageHistory == null)
                 return null;
             var max = displayAll ? messageHistory.Count : maxMessages;
-            return new Stack<ConsoleMessage>(messageHistory.Take(max));
+            return new Stack<string>(messageHistory.Take(max));
         }
     }
     public RectTransform contentRect;
@@ -107,21 +82,18 @@ public class Console : MonoBehaviourPun
     {
         Initialize();
     }
+
     public void Update()
     {
         if (Input.GetKeyDown(KeyCode.A))
         {
             WriteLine("WriteLine", "Debug");
         }
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            Write("Write");
-        }
     }
 
     public void Initialize()
     {
-        messageHistory = new Stack<ConsoleMessage>();
+        messageHistory = new Stack<string>();
         WriteLine("Game Started!"); // Should read: 'SYSTEM: Game Started!'
         HardRefresh();
     }
