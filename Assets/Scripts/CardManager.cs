@@ -9,6 +9,7 @@ using TMPro;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using System.Text.RegularExpressions;
 using ExitGames.Client.Photon;
+using System.Collections;
 
 public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallbacks
 {
@@ -19,6 +20,11 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     public List<Card> allCards;
     public Queue<Card> remainingCards; // cartas del montón (para robar)
     public Stack<Card> playingCardStack; // el montón con el que se juega
+
+    public GameObject gamePanel, winPanel;
+
+    [Header("WIN")]
+    public TMP_Text[] podium;
 
     List<Card>[] playerCardList; // una lista de listas para guardar las cartas de los jugadores
 
@@ -68,6 +74,8 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     private void Start()
     {
         console = Console.Instance;
+        gamePanel.SetActive(true);
+        winPanel.SetActive(false);
         if (PhotonNetwork.IsMasterClient)
         {
             allCards = new List<Card>();
@@ -93,15 +101,6 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     private void Update()
     {
-        if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].MoveCards(true);
-        }
-        else if (Input.GetKey(KeyCode.RightArrow))
-        {
-            playerCardSelectors[PhotonNetwork.LocalPlayer.ActorNumber].MoveCards(false);
-        }
-
         // Cheats
         if (Input.GetKeyDown(KeyCode.K))
         {
@@ -124,13 +123,13 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        if (cause == DisconnectCause.DisconnectByClientLogic)
+            UnityEngine.SceneManagement.SceneManager.LoadScene(OchoLoco.MAIN_SCENE_INDEX);
     }
 
     public override void OnLeftRoom()
     {
-        //PhotonNetwork.Disconnect();
-        //UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        PhotonNetwork.Disconnect();
         console.WriteLine("Has salido de la sala.");
     }
 
@@ -301,7 +300,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         {
             foreach (var item in playerCardSelectors.Values)
             {
-                item.RefreshCards();
+                item.Refresh();
             }
         }
     }
@@ -504,9 +503,6 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
 
         turnHistory.Add(new KeyValuePair<Player, object>(player, move));
 
-        if (!PhotonNetwork.IsMasterClient)
-            return;
-
         if (player.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
         {
             var l = (Card[])cardL;
@@ -514,11 +510,59 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
             if (l.Length == 1) // no se por que sale 1??
             {
                 console.WriteLine(player.NickName + " gana la partida!!!");
+                Win();
                 return;
             }
         }
 
+        if (!PhotonNetwork.IsMasterClient)
+            return;
+
         BeginTurn();
+    }
+
+    public void Win()
+    {
+        gamePanel.SetActive(false);
+        winPanel.SetActive(true);
+        Dictionary<Player, int> playerCardCount = new Dictionary<Player, int>();
+
+        foreach (Player p in PhotonNetwork.PlayerList)
+        {
+            if (p.CustomProperties.TryGetValue(OchoLoco.PLAYER_CARDS, out object cardL))
+            {
+                playerCardCount.Add(p, ((Card[])cardL).Length);
+                if (playerCardCount.Count >= 3)
+                    break;
+            }
+        }
+
+        var pList = playerCardCount.OrderBy(x => x.Value).ToList();
+        for (int i = 0; i < podium.Length; i++)
+        {
+            string s = "";
+            if (i < pList.Count)
+                s = pList[i].Key.NickName;
+            podium[i].SetText(s);
+        }
+    }
+
+    public void PlayAgain()
+    {
+        photonView.RPC("RestartGameRPC", RpcTarget.All);
+    }
+
+    [PunRPC]
+    public void RestartGameRPC()
+    {
+        StartCoroutine(StartGame());
+    }
+
+    private IEnumerator StartGame()
+    {
+        yield return new WaitForSeconds(0.2f);
+        if (debug) Debug.Log("starting game");
+        PhotonNetwork.LoadLevel(OchoLoco.GAME_SCENE_INDEX);
     }
 
     public void OnTurnTimeEnds(int turn)
@@ -527,7 +571,7 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     }
 }
 
-[System.Serializable]
+    [System.Serializable]
 public struct Card
 {
     public int palo;

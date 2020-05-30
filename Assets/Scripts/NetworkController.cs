@@ -12,7 +12,6 @@ public class NetworkController : MonoBehaviourPunCallbacks
     public static NetworkController Instance;
 
     public int RoomSize;
-    public int multiplayerSceneIndex;
     public bool debug;
 
     [Header("Prefabs")]
@@ -393,7 +392,7 @@ public class NetworkController : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient)
         {
             if (debug) Debug.Log("starting game");
-            PhotonNetwork.LoadLevel(multiplayerSceneIndex);
+            PhotonNetwork.LoadLevel(OchoLoco.GAME_SCENE_INDEX);
         }
     }
 }
