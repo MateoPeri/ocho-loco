@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 public class OchoLoco
 {
+    public const int MAIN_SCENE_INDEX = 0;
+    public const int GAME_SCENE_INDEX = 1;
     public const int CARD_COUNT = -1;
     public const string REMAINING_CARDS = "RemainingCards";
     public const string CONSOLE_HISTORY = "ConsoleHistory";
