@@ -116,9 +116,16 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
         }
     }
 
+    public IEnumerator LeaveRoomCor()
+    {
+        console.WriteLine("Ha salido de la partida.", PhotonNetwork.LocalPlayer.NickName);
+        yield return new WaitForSeconds(0.2f);
+        PhotonNetwork.LeaveRoom();
+    }
+
     public void LeaveRoom()
     {
-        PhotonNetwork.LeaveRoom();
+        StartCoroutine(LeaveRoomCor());
     }
 
     public override void OnDisconnected(DisconnectCause cause)
@@ -130,7 +137,6 @@ public class CardManager : PunTurnManager, IPunObservable, IPunTurnManagerCallba
     public override void OnLeftRoom()
     {
         PhotonNetwork.Disconnect();
-        console.WriteLine("Has salido de la sala.");
     }
 
     public List<Card>[] RepartirCartas(int n = 1)
